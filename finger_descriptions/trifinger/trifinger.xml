@@ -76,6 +76,7 @@
     
   </worldbody>
   
+  
   <actuator>
     <motor name="finger0_base_to_upper_joint"       gear="1"  joint="finger0_base_to_upper_joint"/>
     <motor name="finger0_upper_to_middle_joint"       gear="1"  joint="finger0_upper_to_middle_joint"/>

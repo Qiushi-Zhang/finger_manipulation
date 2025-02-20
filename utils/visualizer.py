@@ -59,6 +59,8 @@ def get_T_mj(model, data, body_name):
     body_id = model.body_parentid
     # print(body_id.shape)
     body_id = 10
+
+    print(data.body("disk").id, body_id)
     
     # 2. Extract the position (xpos) and 3×3 rotation (xmat)
     #    MuJoCo stores them in flat arrays, so we reshape xmat.

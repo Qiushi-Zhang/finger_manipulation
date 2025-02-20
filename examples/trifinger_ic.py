@@ -13,10 +13,11 @@ from utils import pin_utils
 from utils import planner
 from utils import visualizer
 from pinocchio.visualize import MeshcatVisualizer
-import example_robot_data
+# import example_robot_data
 finger0_path = os.path.join(base_dir, 'finger_descriptions/trifinger/nyu_finger_triple0.urdf')
 finger1_path = os.path.join(base_dir, 'finger_descriptions/trifinger/nyu_finger_triple1.urdf')
 finger2_path = os.path.join(base_dir, 'finger_descriptions/trifinger/nyu_finger_triple2.urdf')
+
 
 
 # setup Mujoco env and viewer
