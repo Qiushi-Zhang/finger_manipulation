@@ -1,5 +1,9 @@
 <mujoco model="nyu_finger0">
+
   <compiler angle="radian"  meshdir="meshes"/>
+  <extension>
+    <plugin plugin="mujoco.sensor.touch_grid"/>
+  </extension>
   <!-- <option gravity="0 0 0"/> -->
   <size/>
   <default/>
@@ -65,20 +69,30 @@
       </body>
     </body>
 
-    <body name="disk" pos="0 0 0.2">
-    <!-- Hinge joint allows rotation around the z-axis only -->
-      <joint name="disk_hinge" type="hinge" axis="0 0 1"/>
-    <!-- Cylinder: size format is "radius half_height" -->
-      <geom name="disk_geom" type="cylinder" size="0.04 0.02" rgba="0.8 0.8 0.8 1" friction="0.7 0.005 0.0001"/>
-      <!-- <site name="disk_frame" pos="0 0 0" size="0.1" type="axis"/> -->
-      
-      
-    </body>
   
-  
-    
+  <geom name="center_box"
+          type="box"
+          size="0.3 0.3 0.01"
+          pos ="0 0 0.13"
+          rgba="0.7 0.6 0.5 1"/>
+
+    <!-- Site whose footprint matches the 10×10 grid (0.05 m square)    -->
+    <!-- Give it 1 mm clearance above the box to guarantee contact pick‑up -->
+    <site name="grid_site"
+          type="box"
+          size="0.3 0.3 0.0005"         
+          pos ="0 0 0.1415"           
+          rgba="1 0 0 0.3"/>
+
   </worldbody>
-  
+  <sensor>
+    <plugin name="touch" plugin="mujoco.sensor.touch_grid" objtype="site" objname="grid_site">
+      <config key="size" value="300 300"/>
+      <config key="fov" value="45 45"/>
+      <config key="gamma" value="0"/>
+      <config key="nchannel" value="3"/>
+    </plugin>
+  </sensor>
   
   <actuator>
     <motor name="finger0_base_to_upper_joint"       gear="1"  joint="finger0_base_to_upper_joint"/>

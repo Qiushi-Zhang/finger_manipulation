@@ -4,15 +4,16 @@ import os
 current_dir = os.path.dirname(os.path.abspath(__file__))
 base_dir = os.path.dirname(current_dir)
 
-import mujoco.msh2obj_test
+
+# import mujoco.msh2obj_test
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 # import pinocchio as pin 
 import numpy as np 
 import mujoco_viewer
 # from utils import pin_utils
-import pinocchio as pin 
+# import pinocchio as pin 
 from utils import planner
-from utils import pin_utils
+# from utils import pin_utils
 from utils import visualizer
 # from pinocchio.visualize import MeshcatVisualizer
 # import example_robot_data
@@ -22,9 +23,9 @@ finger2_path = os.path.join(base_dir, 'finger_descriptions/trifinger/nyu_finger_
 
 
 
-finger0_model = pin.buildModelFromUrdf(finger0_path)
-finger0_data = finger0_model.createData()
-eeid0 = finger0_model.getFrameId("finger0_tip_link")
+# # finger0_model = pin.buildModelFromUrdf(finger0_path)
+# finger0_data = finger0_model.createData()
+# eeid0 = finger0_model.getFrameId("finger0_tip_link")
 
 # setup Mujoco env and viewer
 mj_model = mujoco.MjModel.from_xml_path("/home/qiushi/workspace/finger_manipulation/finger_descriptions/trifinger/trifinger.xml")
@@ -39,8 +40,8 @@ v_des = np.zeros(3)
 
 T_world = np.eye(4)
 
-P = 200
-D = 5
+P = 400
+D = 10
 
 R = 0.05
 h = 0.2
@@ -49,7 +50,9 @@ theta0 = np.pi/3
 theta1 = np.pi
 theta2 = 5*np.pi/3
 
-q_init = np.array([0,np.pi/4, -np.pi/2]*3)
+q_init = np.array([0,np.pi/4
+                   
+                   , -np.pi/2]*3)
 mj_data.qpos[:9] = q_init
 
 
@@ -84,9 +87,12 @@ def compute_point_jacobian(model, data, body_name, local_pos):
     
     return J_pos, J_rot
 
-x_des = pin_utils.forward_kinematics(finger0_model, finger0_data, eeid0, np.array([0,np.pi/4, -np.pi/2]))[:3,3]
+# x_des = pin_utils.forward_kinematics(finger0_model, finger0_data, eeid0, np.array([0,np.pi/4, -np.pi/2]))[:3,3]
 v_des = np.zeros(3)
 
+epsilon = 10e-4
+K = 100
+alpha = 5
 while mj_data.time < 20:
     
     q0, v0 = mj_data.qpos[:3], mj_data.qvel[:3]
@@ -98,22 +104,42 @@ while mj_data.time < 20:
     
     
     T_disk = visualizer.get_T_mj(mj_model, mj_data, "disk")
-    T_0 = pin_utils.forward_kinematics(finger0_model, finger0_data, eeid0, q0)
-    x_0 = T_0[:3,3]
+    # T_0 = pin_utils.forward_kinematics(finger0_model, finger0_data, eeid0, q0)
+    # x_0 = T_0[:3,3]
 
     J_pos, J_rot =compute_point_jacobian(mj_model, mj_data, "finger0_lower_link" , x_0)
 
-    # print(J_pos[:,:3])
-    J_ref = pin_utils.compute_jacobian(finger0_model, finger0_data, eeid0, q0)[:3,:]
-    # print(J_ref)
+    J_pos1, J_rot1 =compute_point_jacobian(mj_model, mj_data, "finger0_lower_link" , x_0)
 
-    print(np.linalg.norm(J_ref-J_pos[:,:3]))
+    # # print(J_pos[:,:3])
+    # J_ref = pin_utils.compute_jacobian(finger0_model, finger0_data, eeid0, q0)[:3,:]
+    # # print(J_ref)
 
+    # print(np.linalg.norm(J_ref-J_pos[:,:3]))
+    J = J_pos 
+    pinv = J.T@np.linalg.inv(J@J.T+epsilon*np.eye(3))
+    # print(pinv.shape)
 
+    dx = K*(x_des-x_0)
+    dq = pinv@dx 
+    q_next = mj_data.qpos + dq * alpha 
+    # mj_data.qpos = q_next 
+
+    # q_next = 
+    # print(dq)
+    # tau = D*(dq- mj_data.qvel)
     tau = J_pos.T@(P*(x_des-x_0)+D*(v_des-J_pos@mj_data.qvel))
-    tau = tau[:9]
-    print(mj_model.nv, mj_model.nq, len(mj_data.ctrl))
-    mj_data.ctrl = tau 
+    tau2 = J_pos.T@(P*(x_des1-xa_0)+D*(v_des-J_pos@mj_data.qvel))
+
+    print(np.linalg.norm(x_des-x_0))
+    # tau = tau[:9]
+    # print(mj_model.nv, mj_model.nq, len(mj_data.ctrl))
+    # mj_data.ctrl = tau 
+    # tau = alpha*(dq - mj_data.qvel)[:9]
+    # print(tau)
+    mj_data.qvel = tau
+
+
 
 
     mujoco.mj_step(mj_model, mj_data)
